@@ -22,14 +22,17 @@ def get_base_page():
     urls = []
     while True:
         try:
+            #process about Accept Button
             if "Accept" in page and flag_accepted is False:
                 button = driver.find_element(By.ID, "onetrust-accept-btn-handler")
                 button.click()
                 flag_accepted = True
 
+            #scroll down
             driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
             time.sleep(2)
             
+            #get list about url of hotels
             soup = bs4.BeautifulSoup(page, "html.parser")
             url_els = soup.find_all("a", class_="a78ca197d0")
 
@@ -38,6 +41,7 @@ def get_base_page():
             if(url_len > 2000):
                 return url_els
             
+            #pagination process
             load_more_button = driver.find_element(By.CSS_SELECTOR, "button.a83ed08757.c21c56c305.bf0537ecb5.f671049264.af7297d90d.c0e0affd09")
             load_more_button.click()
             time.sleep(2)
