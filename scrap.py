@@ -7,19 +7,23 @@ from selenium.webdriver.chrome.options import Options
 import bs4
 import time
 
-base_url = "https://www.booking.com/searchresults.en-gb.html?ss=italy"
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'}
-chrome_opt = Options()
-chrome_prefs = {"profile.managed_default_content_settings.images": 2}
-chrome_opt.add_experimental_option("prefs", chrome_prefs)
-driver = webdriver.Chrome(options=chrome_opt)
-driver.get(base_url)
-time.sleep(5)
+hotel_data = {}
+hotels = []
 
-def get_base_page():
+#Configure the WebDriver
+def setup_driver():
+    chrome_opt = Options()
+    chrome_prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_opt.add_experimental_option("prefs", chrome_prefs)
+    driver = webdriver.Chrome(options=chrome_opt)
+    return driver
+
+def get_base_page(driver, base_url):
+    driver.get(base_url)
+    time.sleep(5)
     page = driver.page_source
     flag_accepted = False
-    urls = []
+    
     while True:
         try:
             #process about Accept Button
@@ -37,8 +41,7 @@ def get_base_page():
             url_els = soup.find_all("a", class_="a78ca197d0")
 
             url_len = len(url_els)
-            print(url_len)
-            if(url_len > 2000):
+            if(url_len > 300):
                 return url_els
             
             #pagination process
@@ -47,10 +50,6 @@ def get_base_page():
             time.sleep(2)
 
             page = driver.page_source
-            
-            # for i in url_els:
-            #     temp = i["href"]
-            #     urls.append(temp[:temp.find('label')-1])
 
         except NoSuchElementException:
             # No "Load More" button found, stop scrolling
@@ -62,23 +61,21 @@ def get_base_page():
             time.sleep(5)
             continue
     
-    return urls
+    return url_els
 
-def get_hotel_urls(page):
-    soup = bs4.BeautifulSoup(page, "html.parser")
-    url_els = soup.find_all("a", class_="a78ca197d0")
-    urls = []
-    for i in url_els:
+def get_hotel_data(hotel_list):
+
+    for i in hotel_list:
         temp = i["href"]
-        urls.append(temp[:temp.find('label')-1])
-    return urls
+        url = temp[:temp.find('label')-1]
 
 def get_hotel_content(url):
     pass
 
 if __name__ == "__main__":
-    base_page = get_base_page()
-    print(len(base_page))
+    base_url = "https://www.booking.com/searchresults.en-gb.html?ss=italy"
+    driver = setup_driver()
+    hotel_list = get_base_page(driver,base_url)
 
   
     # rep = requests.get("https://www.booking.com/hotel/it/coccole-in-villa-b-amp-b-close-to-outlet.en-gb.html?aid=304142", headers=headers)
